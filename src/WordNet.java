@@ -4,8 +4,11 @@ import java.util.List;
 
 public class WordNet {
 
+    private static final int ROOT_INDEX = 38003;
+
     private final Synset[] synsets;
     private final Digraph digraph;
+    private final Synset root;
 
     // constructor takes the name of the two input files
     public WordNet(String synsets, String hypernyms) {
@@ -14,7 +17,8 @@ public class WordNet {
         }
 
         this.synsets = createSynsets(synsets);
-        this.digraph = createDigraph();
+        this.digraph = new Digraph(this.synsets.length);
+        this.root = this.synsets[ROOT_INDEX];
         addEdges(hypernyms);
     }
 
@@ -39,10 +43,6 @@ public class WordNet {
             }
         }
         return result.toArray(new Synset[result.size()]);
-    }
-
-    private Digraph createDigraph() {
-        return new Digraph(synsets.length);
     }
 
     private class Synset {
