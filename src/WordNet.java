@@ -26,7 +26,6 @@ public class WordNet {
         this.digraph = new Digraph(this.synsets.size());
         this.root = this.synsets.get(ROOT_INDEX);
         addEdges(hypernyms);
-        System.out.println(this.digraph);
     }
 
     private void createSynsets(String synsets) {
@@ -100,6 +99,9 @@ public class WordNet {
     public int distance(String nounA, String nounB) {
         if (nounA == null || nounB == null) {
             throw new NullPointerException();
+        }
+        if (!isNoun(nounA) && !isNoun(nounB)) {
+            throw new IllegalArgumentException();
         }
         return -1;
     }
