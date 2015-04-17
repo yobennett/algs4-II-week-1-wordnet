@@ -12,6 +12,7 @@ public class WordNet {
     private final List<String> synsets;
     private final Digraph digraph;
     private final String root;
+    private final SAP sap;
 
     // constructor takes the name of the two input files
     public WordNet(String synsets, String hypernyms) {
@@ -26,6 +27,7 @@ public class WordNet {
         this.digraph = new Digraph(this.synsets.size());
         this.root = this.synsets.get(ROOT_INDEX);
         addEdges(hypernyms);
+        this.sap = new SAP(digraph);
     }
 
     private void createSynsets(String synsets) {
@@ -103,7 +105,9 @@ public class WordNet {
         if (!isNoun(nounA) && !isNoun(nounB)) {
             throw new IllegalArgumentException();
         }
-        return -1;
+        List<Integer> nounsA = nouns.get(nounA);
+        List<Integer> nounsB = nouns.get(nounB);
+        return sap.length(nounsA, nounsB);
     }
 
     // a synset (second field of synsets.txt) that is the common ancestor of nounA and nounB
@@ -112,7 +116,10 @@ public class WordNet {
         if (nounA == null || nounB == null) {
             throw new NullPointerException();
         }
-        return "";
+        List<Integer> nounsA = nouns.get(nounA);
+        List<Integer> nounsB = nouns.get(nounB);
+        int ancestorIndex = sap.ancestor(nounsA, nounsB);
+        return synsets.get(ancestorIndex);
     }
 
     public static void main(String[] args) {
