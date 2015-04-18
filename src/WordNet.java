@@ -1,17 +1,15 @@
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class WordNet {
 
-    private static final int ROOT_INDEX = 38003;
-
-    private final Map<String, List<Integer>> nouns;
-    private final List<String> synsets;
-    private final Digraph digraph;
-    private final String root;
+    private Map<String, Set<Integer>> wordToSynsetIds;
+    private Map<Integer, String> synsets;
     private final SAP sap;
 
     // constructor takes the name of the two input files
@@ -20,73 +18,54 @@ public class WordNet {
             throw new NullPointerException();
         }
 
-        this.nouns = new HashMap<String, List<Integer>>();
-        this.synsets = new ArrayList<String>();
-
-        createSynsets(synsets);
-        this.digraph = new Digraph(this.synsets.size());
-        this.root = this.synsets.get(ROOT_INDEX);
-        addEdges(hypernyms);
+        this.synsets = new HashMap<Integer, String>();
+        this.wordToSynsetIds = buildSynsets(new In(synsets));
+        Digraph digraph = buildDigraph(new In(hypernyms));
         this.sap = new SAP(digraph);
     }
 
-    private void createSynsets(String inSynsets) {
-        In in = new In(inSynsets);
-        while (in.hasNextLine()) {
-            String line = in.readLine();
-
-            if (line == null || line.isEmpty()) {
-                break;
-            }
-
+    private Map<String, Set<Integer>> buildSynsets(In input) {
+        Map<String, Set<Integer>> result = new HashMap<String, Set<Integer>>();
+        while (input.hasNextLine()) {
+            String line = input.readLine();
             String[] parts = line.split(",");
 
-            if (parts.length >= 2) {
+            int id = Integer.parseInt(parts[0]);
+            List<String> synonyms = Arrays.asList(parts[1].split(" "));
 
-                int id = Integer.parseInt(parts[0]);
-                String nounsPart = parts[1];
-
-                this.synsets.add(nounsPart);
-
-                for (String noun : nounsPart.split("\\s")) {
-                    List<Integer> bag = nouns.get(noun);
-                    if (bag == null) {
-                        bag = new ArrayList<Integer>();
-                        nouns.put(noun, bag);
-                    }
-                    bag.add(id);
+            for (String synonym : synonyms) {
+                if (result.containsKey(synonym)) {
+                    result.get(synonym).add(id);
+                } else {
+                    Set<Integer> ids = new HashSet<Integer>();
+                    ids.add(id);
+                    result.put(synonym, ids);
                 }
-
             }
+
+            synsets.put(id, parts[1]);
         }
+        return result;
     }
 
-    private void addEdges(String hypernyms) {
-        In in = new In(hypernyms);
+    private Digraph buildDigraph(In in) {
+        Digraph graph = new Digraph(synsets.size());
         while (in.hasNextLine()) {
             String line = in.readLine();
-
-            if (line == null || line.isEmpty()) {
-                break;
-            }
-
             String[] parts = line.split(",");
 
             int synsetId = Integer.parseInt(parts[0]);
             for (int i = 1; i < parts.length; i++) {
                 int hypernymId = Integer.parseInt(parts[i]);
-                addEdge(hypernymId, synsetId);
+                graph.addEdge(synsetId, hypernymId);
             }
         }
-    }
-
-    private void addEdge(int v, int w) {
-        digraph.addEdge(v, w);
+        return graph;
     }
 
     // returns all WordNet nouns
     public Iterable<String> nouns() {
-        return Collections.unmodifiableSet(nouns.keySet());
+        return Collections.unmodifiableSet(wordToSynsetIds.keySet());
     }
 
     // is the word a WordNet noun?
@@ -94,7 +73,7 @@ public class WordNet {
         if (word == null) {
             throw new NullPointerException();
         }
-        return nouns.containsKey(word);
+        return wordToSynsetIds.containsKey(word);
     }
 
     // distance between nounA and nounB (defined below)
@@ -105,8 +84,8 @@ public class WordNet {
         if (!isNoun(nounA) && !isNoun(nounB)) {
             throw new IllegalArgumentException();
         }
-        List<Integer> nounsA = nouns.get(nounA);
-        List<Integer> nounsB = nouns.get(nounB);
+        Iterable<Integer> nounsA = wordToSynsetIds.get(nounA);
+        Iterable<Integer> nounsB = wordToSynsetIds.get(nounB);
         return sap.length(nounsA, nounsB);
     }
 
@@ -117,8 +96,8 @@ public class WordNet {
         if (nounA == null || nounB == null) {
             throw new NullPointerException();
         }
-        List<Integer> nounsA = nouns.get(nounA);
-        List<Integer> nounsB = nouns.get(nounB);
+        Set<Integer> nounsA = wordToSynsetIds.get(nounA);
+        Set<Integer> nounsB = wordToSynsetIds.get(nounB);
         int ancestorIndex = sap.ancestor(nounsA, nounsB);
         return synsets.get(ancestorIndex);
     }

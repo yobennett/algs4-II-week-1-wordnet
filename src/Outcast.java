@@ -10,7 +10,7 @@ public class Outcast {
     public String outcast(String[] nouns) {
 
         int maxDistance = 0;
-        String outcast = "";
+        String outcast = nouns[0];
 
         for (String noun : nouns) {
             int distance = 0;
