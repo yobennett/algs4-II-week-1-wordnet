@@ -30,8 +30,8 @@ public class WordNet {
         this.sap = new SAP(digraph);
     }
 
-    private void createSynsets(String synsets) {
-        In in = new In(synsets);
+    private void createSynsets(String inSynsets) {
+        In in = new In(inSynsets);
         while (in.hasNextLine()) {
             String line = in.readLine();
 
@@ -43,7 +43,7 @@ public class WordNet {
 
             if (parts.length >= 2) {
 
-                Integer id = Integer.parseInt(parts[0]);
+                int id = Integer.parseInt(parts[0]);
                 String nounsPart = parts[1];
 
                 this.synsets.add(nounsPart);
@@ -110,7 +110,8 @@ public class WordNet {
         return sap.length(nounsA, nounsB);
     }
 
-    // a synset (second field of synsets.txt) that is the common ancestor of nounA and nounB
+    // a synset (second field of synsets.txt) that is
+    // the common ancestor of nounA and nounB
     // in a shortest ancestral path (defined below)
     public String sap(String nounA, String nounB) {
         if (nounA == null || nounB == null) {
@@ -125,9 +126,14 @@ public class WordNet {
     public static void main(String[] args) {
         WordNet wordNet = new WordNet(args[0], args[1]);
 
-        String word1 = "";
-        String word2 = "";
-        System.out.println("distance between " + word1 + " and " + word2 + ": " + wordNet.distance(word1, word2));
+        String word1 = "unadaptability";
+        String word2 = "slow-wittedness";
+        int distance = wordNet.distance(word1, word2);
+        assert distance == 9 : "incorrect distance (expected="
+                + 9 + " was=" + distance + ")";
+        System.out.println("distance between "
+                + word1 + " and " + word2 + ": "
+                + distance);
     }
 
 }

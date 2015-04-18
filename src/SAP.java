@@ -17,12 +17,14 @@ public class SAP {
         return length(Arrays.asList(v), Arrays.asList(w));
     }
 
-    // a common ancestor of v and w that participates in a shortest ancestral path; -1 if no such path
+    // a common ancestor of v and w that participates in
+    // a shortest ancestral path; -1 if no such path
     public int ancestor(int v, int w) {
         return ancestor(Arrays.asList(v), Arrays.asList(w));
     }
 
-    // length of shortest ancestral path between any vertex in v and any vertex in w; -1 if no such path
+    // length of shortest ancestral path between any vertex in v
+    // and any vertex in w; -1 if no such path
     public int length(Iterable<Integer> v, Iterable<Integer> w) {
         validateVertices(v);
         validateVertices(w);
@@ -46,7 +48,8 @@ public class SAP {
         return length;
     }
 
-    // a common ancestor that participates in shortest ancestral path; -1 if no such path
+    // a common ancestor that participates in shortest ancestral path;
+    // -1 if no such path
     public int ancestor(Iterable<Integer> v, Iterable<Integer> w) {
         validateVertices(v);
         validateVertices(w);
@@ -72,7 +75,8 @@ public class SAP {
     // throw an IndexOutOfBoundsException unless 0 <= v < V
     private void validateVertex(int v) {
         if (v < 0 || v >= G.V())
-            throw new IndexOutOfBoundsException("vertex " + v + " is not between 0 and " + (G.V()-1));
+            throw new IndexOutOfBoundsException("vertex "
+                    + v + " is not between 0 and " + (G.V()-1));
     }
 
     private void validateVertices(Iterable<Integer> i) {
