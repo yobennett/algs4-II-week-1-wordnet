@@ -8,9 +8,10 @@ import java.util.Set;
 
 public class WordNet {
 
-    private Map<String, Set<Integer>> wordToSynsetIds;
+    private final Map<String, Set<Integer>> wordToSynsetIds;
     private Map<Integer, String> synsets;
     private final SAP sap;
+    private final Digraph digraph;
 
     // constructor takes the name of the two input files
     public WordNet(String synsets, String hypernyms) {
@@ -20,25 +21,25 @@ public class WordNet {
 
         this.synsets = new HashMap<Integer, String>();
         this.wordToSynsetIds = buildSynsets(new In(synsets));
-        Digraph digraph = buildDigraph(new In(hypernyms));
+        this.digraph = buildDigraph(new In(hypernyms));
         this.sap = new SAP(digraph);
 
-        validateRootedDAG(digraph);
+        validateRootedDAG();
     }
 
-    private void validateRootedDAG(Digraph digraph) {
-        if (!isRootedDAG(digraph)) {
+    private void validateRootedDAG() {
+        if (!isRootedDAG()) {
             throw new IllegalArgumentException("Not rooted DAG");
         }
     }
 
-    private boolean isRootedDAG(Digraph digraph) {
+    private boolean isRootedDAG() {
         DirectedCycle cycle = new DirectedCycle(digraph);
 
         int numRoots = 0;
         for (int v = 0; v < digraph.V(); v++) {
             if (digraph.outdegree(v) == 0) {
-                numRoots =+ 1;
+                numRoots += 1;
             }
         }
 
@@ -102,9 +103,7 @@ public class WordNet {
         if (nounA == null || nounB == null) {
             throw new NullPointerException();
         }
-        if (!isNoun(nounA) && !isNoun(nounB)) {
-            throw new IllegalArgumentException();
-        }
+        validateNouns(Arrays.asList(nounA, nounB));
         Iterable<Integer> nounsA = wordToSynsetIds.get(nounA);
         Iterable<Integer> nounsB = wordToSynsetIds.get(nounB);
         return sap.length(nounsA, nounsB);
@@ -117,16 +116,25 @@ public class WordNet {
         if (nounA == null || nounB == null) {
             throw new NullPointerException();
         }
+        validateNouns(Arrays.asList(nounA, nounB));
         Set<Integer> nounsA = wordToSynsetIds.get(nounA);
         Set<Integer> nounsB = wordToSynsetIds.get(nounB);
         int ancestorIndex = sap.ancestor(nounsA, nounsB);
         return synsets.get(ancestorIndex);
     }
 
+    private void validateNouns(Iterable<String> nouns) {
+        for (String noun : nouns) {
+            if (!isNoun(noun)) {
+                throw new IllegalArgumentException();
+            }
+        }
+    }
+
     public static void main(String[] args) {
         WordNet wordNet = new WordNet(args[0], args[1]);
 
-        String word1 = "unadaptability";
+        String word1 = "b";
         String word2 = "slow-wittedness";
         int distance = wordNet.distance(word1, word2);
         assert distance == 9 : "incorrect distance (expected="
