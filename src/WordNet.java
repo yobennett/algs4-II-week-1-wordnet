@@ -22,6 +22,27 @@ public class WordNet {
         this.wordToSynsetIds = buildSynsets(new In(synsets));
         Digraph digraph = buildDigraph(new In(hypernyms));
         this.sap = new SAP(digraph);
+
+        validateRootedDAG(digraph);
+    }
+
+    private void validateRootedDAG(Digraph digraph) {
+        if (!isRootedDAG(digraph)) {
+            throw new IllegalArgumentException("Not rooted DAG");
+        }
+    }
+
+    private boolean isRootedDAG(Digraph digraph) {
+        DirectedCycle cycle = new DirectedCycle(digraph);
+
+        int numRoots = 0;
+        for (int v = 0; v < digraph.V(); v++) {
+            if (digraph.outdegree(v) == 0) {
+                numRoots =+ 1;
+            }
+        }
+
+        return !cycle.hasCycle() && (numRoots == 1);
     }
 
     private Map<String, Set<Integer>> buildSynsets(In input) {
